@@ -4,67 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>我的旅遊計畫</title>
+    <!-- ... (CSS 樣式保持不變，為了版面簡潔這裡省略，請保留原本的 CSS) ... -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
+        /* 請保留原本所有的 CSS */
         :root { --primary: #006994; --accent: #FF7F50; --bg: #F4F7F6; --text: #333; }
         * { box-sizing: border-box; }
         body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
-        
-        /* 通用標頭 */
         header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top:0; z-index: 50; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; height: 60px;}
         .header-title { font-family: 'Zen Maru Gothic'; font-size: 1.2rem; margin: 0; }
         .back-btn { position: absolute; left: 15px; color: white; text-decoration: none; font-size: 1.5rem; display: none; cursor: pointer;}
-        
-        /* 頁面切換控制 */
         .page { display: none; min-height: 100vh; padding-bottom: 100px; }
         .page.active { display: block; }
-
-        /* --- 首頁：專案列表樣式 --- */
         .trip-container { max-width: 600px; margin: 20px auto; padding: 15px; }
+        
+        /* 修改：Trip Card 增加按鈕群組 */
         .trip-card {
-            background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;
-            border-left: 6px solid var(--accent); display: flex; justify-content: space-between; align-items: center;
+            background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s;
+            border-left: 6px solid var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .trip-card:active { transform: scale(0.98); }
-        .trip-name { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
-        .trip-url { font-size: 0.8rem; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-        .btn-remove-trip { color: #ff5252; padding: 10px; font-size: 1.2rem; }
+        .trip-info { flex: 1; cursor: pointer; }
+        .trip-actions { display: flex; gap: 10px; }
+        .action-icon { 
+            width: 36px; height: 36px; border-radius: 50%; background: #f0f0f0; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem;
+        }
+        .btn-share { color: #006994; background: #E1F5FE; }
+        .btn-remove { color: #ff5252; background: #FFEBEE; }
 
-        .add-trip-box {
-            background: white; border-radius: 16px; padding: 20px; margin-top: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
+        .trip-name { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .trip-url { font-size: 0.8rem; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        
+        /* ... 其他 CSS 保持不變 (Detail, Modal, Form...) ... */
+        .add-trip-box { background: white; border-radius: 16px; padding: 20px; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .input-url { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 1rem; }
         .btn-add { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-
-        /* --- 行程頁：沿用之前的樣式 (簡化版) --- */
         .container { max-width: 800px; margin: 0 auto; padding: 15px; }
         .day-section { margin-bottom: 25px; }
         .day-header { background: #E0F7FA; color: var(--primary); padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; font-weight: 700; display: flex; justify-content: space-between; }
-        
-        .event-card {
-            background: white; border-radius: 12px; padding: 12px 10px 12px 16px;
-            margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-            display: flex; align-items: center; gap: 12px; border-left: 5px solid transparent;
-        }
+        .event-card { background: white; border-radius: 12px; padding: 12px 10px 12px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; border-left: 5px solid transparent; }
         .type-景點 { border-left-color: #4FC3F7; } .type-美食 { border-left-color: #FF8A65; } .type-交通 { border-left-color: #90A4AE; } .type-購物 { border-left-color: #BA68C8; } .type-住宿 { border-left-color: #5C6BC0; }
-        
         .drag-handle { color: #ccc; font-size: 20px; cursor: grab; padding: 5px; flex-shrink: 0; }
         .time-box { font-weight: 700; color: var(--primary); font-size: 1.1rem; min-width: 50px; flex-shrink: 0; text-align: center; }
         .info-box { flex: 1; overflow: hidden; cursor: pointer; min-width: 0; }
         .event-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .event-meta { font-size: 0.85rem; color: #666; display: flex; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .btn-map { width: 40px; height: 40px; border-radius: 50%; background: #E3F2FD; color: #0277BD; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.2rem; flex-shrink: 0; }
-
-        /* FAB & Modal (沿用) */
         .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(255, 127, 80, 0.4); cursor: pointer; z-index: 100; display: none; }
         .fab.active { display: flex; }
-        
         #status-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #333; color: white; text-align: center; padding: 8px; font-size: 0.8rem; transform: translateY(100%); transition: transform 0.3s; z-index: 200; }
         #status-bar.show { transform: translateY(0); }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 300; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px 20px; border-radius: 16px; max-height: 90vh; overflow-y: auto; }
@@ -90,15 +82,20 @@
     <!-- 頁面 1: 專案列表 -->
     <div id="page-home" class="page active">
         <div class="trip-container">
-            <div id="tripList">
-                <!-- JS 動態產生列表 -->
-            </div>
+            <div id="tripList"></div>
 
             <div class="add-trip-box">
-                <h3>＋ 新增旅遊計畫</h3>
-                <p style="font-size:0.9rem; color:#666; margin-bottom:10px;">請輸入 Google Apps Script 網址 (Web App URL)</p>
+                <h3>＋ 開始新的旅程</h3>
+                <div style="background:#f0f8ff; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #b3e5fc;">
+                    <p style="margin-top:0; font-weight:bold; color:#0277BD;">第一次使用嗎？</p>
+                    <ol style="font-size:0.9rem; color:#555; padding-left:20px; margin-bottom:10px;">
+                        <li><a href="https://docs.google.com/spreadsheets/d/1_YOUR_TEMPLATE_ID/copy" target="_blank" style="color:#FF7F50; font-weight:bold;">複製資料庫範本</a></li>
+                        <li>擴充功能 > Apps Script > 部署 > 新增部署 (權限選所有人)</li>
+                        <li>複製網址貼在下方</li>
+                    </ol>
+                </div>
                 <input type="text" id="newTripUrl" class="input-url" placeholder="https://script.google.com/macros/s/...">
-                <button class="btn-add" onclick="addNewTrip()">加入</button>
+                <button class="btn-add" id="btnAddTrip" onclick="addNewTrip()">加入旅程</button>
             </div>
         </div>
     </div>
@@ -108,10 +105,9 @@
         <div id="detailApp" class="container"></div>
     </div>
 
-    <!-- 共用元件 -->
+    <!-- Modal & FAB -->
     <div class="fab" id="fabBtn" onclick="openModal('add')">+</div>
     <div id="status-bar">資料儲存中...</div>
-
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 id="modalTitle" style="text-align:center; margin-bottom:20px; margin-top:0;">新增行程</h2>
@@ -159,40 +155,44 @@
     </div>
 
     <script>
-        // --- 全域變數 ---
         let myTrips = JSON.parse(localStorage.getItem('my_trips_list') || '[]');
         let currentTripUrl = '';
         let currentTripData = [];
         let currentTripName = '';
 
-        // --- 初始化 ---
-        renderTripList();
+        // --- 核心更新：自動匯入邏輯 ---
+        window.onload = async function() {
+            // 檢查網址是否有 ?import=...
+            const urlParams = new URLSearchParams(window.location.search);
+            const importUrl = urlParams.get('import');
 
-        // --- 頁面切換邏輯 ---
-        function goHome() {
-            document.getElementById('page-home').classList.add('active');
-            document.getElementById('page-detail').classList.remove('active');
-            document.getElementById('btnBack').style.display = 'none';
-            document.getElementById('headerTitle').innerText = '我的旅遊計畫';
-            document.getElementById('fabBtn').classList.remove('active');
-            currentTripUrl = '';
+            if (importUrl) {
+                // 如果有 import 參數，執行自動加入
+                const cleanUrl = decodeURIComponent(importUrl);
+                
+                // 檢查是否已存在
+                if (myTrips.some(t => t.url === cleanUrl)) {
+                    alert('這個旅遊計畫已經在你的列表囉！');
+                    cleanAddressBar();
+                } else {
+                    if(confirm('收到一個旅遊計畫邀請，要加入嗎？')) {
+                        document.getElementById('newTripUrl').value = cleanUrl;
+                        await addNewTrip(); // 呼叫新增函式
+                        cleanAddressBar();
+                    } else {
+                        cleanAddressBar();
+                    }
+                }
+            }
+            renderTripList();
+        };
+
+        function cleanAddressBar() {
+            // 清除網址列的參數，避免重新整理又跳一次
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        async function openTrip(url) {
-            currentTripUrl = url;
-            // UI 切換
-            document.getElementById('page-home').classList.remove('active');
-            document.getElementById('page-detail').classList.add('active');
-            document.getElementById('btnBack').style.display = 'block';
-            document.getElementById('fabBtn').classList.add('active');
-            
-            document.getElementById('detailApp').innerHTML = '<div style="text-align:center; padding:50px; color:#999;">載入行程中...</div>';
-            
-            // 載入資料
-            await loadTripData(url);
-        }
-
-        // --- 首頁功能 ---
+        // --- 功能實作 ---
         function renderTripList() {
             const listEl = document.getElementById('tripList');
             listEl.innerHTML = '';
@@ -206,29 +206,44 @@
                 const div = document.createElement('div');
                 div.className = 'trip-card';
                 div.innerHTML = `
-                    <div onclick="openTrip('${trip.url}')" style="flex:1">
-                        <div class="trip-name">${trip.name || '載入中...'}</div>
+                    <div class="trip-info" onclick="openTrip('${trip.url}')">
+                        <div class="trip-name">${trip.name || '未命名行程'}</div>
                         <div class="trip-url">${trip.url}</div>
                     </div>
-                    <div class="btn-remove-trip" onclick="removeTrip(${index})">×</div>
+                    <div class="trip-actions">
+                        <div class="action-icon btn-share" onclick="shareTrip('${trip.url}')" title="分享給朋友">🔗</div>
+                        <div class="action-icon btn-remove" onclick="removeTrip(${index})" title="移除">×</div>
+                    </div>
                 `;
                 listEl.appendChild(div);
             });
         }
 
+        // 核心更新：分享功能
+        function shareTrip(gasUrl) {
+            // 產生 Magic Link: 目前網址 + ?import=GAS_URL
+            // encodeURIComponent 很重要，避免網址符號衝突
+            const shareLink = `${window.location.origin}${window.location.pathname}?import=${encodeURIComponent(gasUrl)}`;
+            
+            // 複製到剪貼簿
+            navigator.clipboard.writeText(shareLink).then(() => {
+                alert('連結已複製！\n\n請把連結貼給朋友，他們點開就會自動加入行程。\n(你們會共同編輯同一份資料)');
+            }).catch(err => {
+                prompt('請手動複製以下連結傳給朋友：', shareLink);
+            });
+        }
+
         async function addNewTrip() {
             const urlInput = document.getElementById('newTripUrl');
+            const btn = document.getElementById('btnAddTrip');
             const url = urlInput.value.trim();
             if (!url) return alert('請輸入網址');
             
-            // 簡單驗證
-            if (!url.includes('script.google.com')) return alert('這看起來不像 Google Apps Script 網址');
-
-            // 先嘗試抓取標題
-            const btn = document.querySelector('.btn-add');
             btn.innerText = '驗證中...';
+            btn.disabled = true;
             
             try {
+                // 測試連線並取得標題
                 const res = await fetch(url);
                 const data = await res.json();
                 const name = data.title || '未命名旅遊';
@@ -238,28 +253,46 @@
                 
                 urlInput.value = '';
                 renderTripList();
-                alert('新增成功！');
+                alert('成功加入：' + name);
             } catch (e) {
-                alert('無法連結該網址，請確認權限是否設為「所有人」\n' + e);
+                alert('無法加入，請確認該網址權限已設為「所有人」。\n' + e);
             } finally {
-                btn.innerText = '加入';
+                btn.innerText = '加入旅程';
+                btn.disabled = false;
             }
         }
 
         function removeTrip(index) {
-            if (confirm('確定移除這個連結嗎？(不會刪除 Google Sheet 資料)')) {
+            if (confirm('確定移除這個行程嗎？\n(這只會移除你手機上的連結，不會刪除 Google Sheet 的資料)')) {
                 myTrips.splice(index, 1);
                 localStorage.setItem('my_trips_list', JSON.stringify(myTrips));
                 renderTripList();
             }
         }
 
-        // --- 詳細頁功能 (核心邏輯) ---
+        // --- 以下行程詳細頁邏輯與之前相同 ---
+        function goHome() {
+            document.getElementById('page-home').classList.add('active');
+            document.getElementById('page-detail').classList.remove('active');
+            document.getElementById('btnBack').style.display = 'none';
+            document.getElementById('headerTitle').innerText = '我的旅遊計畫';
+            document.getElementById('fabBtn').classList.remove('active');
+            currentTripUrl = '';
+        }
+
+        async function openTrip(url) {
+            currentTripUrl = url;
+            document.getElementById('page-home').classList.remove('active');
+            document.getElementById('page-detail').classList.add('active');
+            document.getElementById('btnBack').style.display = 'block';
+            document.getElementById('fabBtn').classList.add('active');
+            document.getElementById('detailApp').innerHTML = '<div style="text-align:center; padding:50px; color:#999;">載入行程中...</div>';
+            await loadTripData(url);
+        }
+
         async function loadTripData(url) {
-            // 嘗試讀取個別快取
             const cacheKey = 'trip_cache_' + url;
             const cached = localStorage.getItem(cacheKey);
-            
             if (cached) {
                 const data = JSON.parse(cached);
                 currentTripName = data.title;
@@ -267,34 +300,24 @@
                 renderDetail();
                 document.getElementById('headerTitle').innerText = currentTripName;
             }
-
-            // 背景更新
             showStatus('同步中...', false);
             try {
                 const res = await fetch(url + '?t=' + Date.now(), { redirect: 'follow' });
                 const json = await res.json();
-                
-                // 更新後端回傳的標題
                 if (json.title) {
                     currentTripName = json.title;
                     document.getElementById('headerTitle').innerText = currentTripName;
-                    
-                    // 更新列表裡的名稱
                     const tripIdx = myTrips.findIndex(t => t.url === url);
                     if (tripIdx !== -1) {
                         myTrips[tripIdx].name = json.title;
                         localStorage.setItem('my_trips_list', JSON.stringify(myTrips));
                     }
                 }
-
                 currentTripData = json.data || [];
-                
-                // 初始化 Order (如果是舊資料)
                 if (currentTripData.length > 0 && !currentTripData[0].order) {
                     currentTripData.sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
                     currentTripData.forEach((item, i) => item.order = (i+1)*10000);
                 }
-
                 localStorage.setItem(cacheKey, JSON.stringify({ title: currentTripName, data: currentTripData }));
                 renderDetail();
                 showStatus('同步完成', true);
@@ -306,19 +329,15 @@
         function renderDetail() {
             const app = document.getElementById('detailApp');
             app.innerHTML = '';
-
-            // Sort by Order
             currentTripData.sort((a, b) => {
                 if (a.date !== b.date) return a.date.localeCompare(b.date);
                 return (a.order || 0) - (b.order || 0);
             });
-
             const groups = {};
             currentTripData.forEach(item => {
                 if (!groups[item.date]) groups[item.date] = [];
                 groups[item.date].push(item);
             });
-
             Object.keys(groups).forEach(date => {
                 const dayId = `day-${date}`;
                 const dayName = new Date(date).toLocaleDateString('zh-TW', {weekday: 'long'});
@@ -344,27 +363,18 @@
                 html += `</div></div>`;
                 app.innerHTML += html;
             });
-
-            // 綁定 Sortable
             document.querySelectorAll('.event-list').forEach(el => {
-                new Sortable(el, {
-                    handle: '.drag-handle', animation: 150, group: 'shared',
-                    onEnd: handleDragEnd
-                });
+                new Sortable(el, { handle: '.drag-handle', animation: 150, group: 'shared', onEnd: handleDragEnd });
             });
         }
 
         function handleDragEnd(evt) {
             const item = currentTripData.find(d => d.id === evt.item.getAttribute('data-id'));
             if (!item) return;
-
             const targetList = evt.to;
-            item.date = targetList.getAttribute('data-date'); // 更新日期
-            
-            // 更新 Order
+            item.date = targetList.getAttribute('data-date');
             const siblings = Array.from(targetList.children).filter(el => el !== evt.item);
             const newIndex = evt.newIndex;
-            
             let newOrder;
             if (siblings.length === 0) newOrder = 10000;
             else if (newIndex === 0) newOrder = (parseFloat(siblings[0].getAttribute('data-order')) || 0) / 2;
@@ -375,31 +385,27 @@
                 newOrder = (prev + next) / 2;
             }
             item.order = newOrder;
-
-            // 儲存與同步
             const cacheKey = 'trip_cache_' + currentTripUrl;
             localStorage.setItem(cacheKey, JSON.stringify({ title: currentTripName, data: currentTripData }));
             renderDetail();
             backgroundUpdate('edit', { id: item.id, date: item.date, order: newOrder });
         }
 
-        // --- 表單與操作 (沿用邏輯) ---
         const form = document.getElementById('eventForm');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(form);
             const rawData = Object.fromEntries(formData.entries());
-            
-            if (!rawData.id) { // Add
+            if (!rawData.id) {
                 rawData.id = 'temp_' + Date.now();
                 const maxOrder = currentTripData.reduce((m, p) => p.order > m ? p.order : m, 0);
                 rawData.order = maxOrder + 10000;
                 currentTripData.push(rawData);
                 backgroundUpdate('add', rawData);
-            } else { // Edit
+            } else {
                 const idx = currentTripData.findIndex(d => d.id === rawData.id);
                 if (idx !== -1) {
-                    rawData.order = currentTripData[idx].order; // Keep order
+                    rawData.order = currentTripData[idx].order;
                     currentTripData[idx] = { ...currentTripData[idx], ...rawData };
                     backgroundUpdate('edit', rawData);
                 }
@@ -424,45 +430,21 @@
 
         function backgroundUpdate(action, data) {
             if (!currentTripUrl) return;
-            fetch(currentTripUrl, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({ action, ...data })
-            }).catch(e => console.error(e));
+            fetch(currentTripUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action, ...data }) }).catch(e => console.error(e));
         }
 
-        // UI Helpers
-        function showStatus(msg, autoHide) {
-            const bar = document.getElementById('status-bar');
-            bar.innerText = msg; bar.classList.add('show');
-            if (autoHide) setTimeout(() => bar.classList.remove('show'), 2000);
-        }
+        function showStatus(msg, autoHide) { const bar = document.getElementById('status-bar'); bar.innerText = msg; bar.classList.add('show'); if (autoHide) setTimeout(() => bar.classList.remove('show'), 2000); }
         function openModal(mode, id) {
-            const modal = document.getElementById('modal');
-            const btnDel = document.getElementById('btnDel');
-            modal.classList.add('active');
+            const modal = document.getElementById('modal'); const btnDel = document.getElementById('btnDel'); modal.classList.add('active');
             if (mode === 'edit') {
-                document.getElementById('modalTitle').innerText = '編輯行程';
-                btnDel.style.display = 'block';
+                document.getElementById('modalTitle').innerText = '編輯行程'; btnDel.style.display = 'block';
                 const item = currentTripData.find(d => d.id === id);
-                // Fill form...
-                document.getElementById('eventId').value = item.id;
-                document.getElementById('inputDate').value = item.date;
-                document.getElementById('inputTime').value = item.time;
-                document.getElementById('inputTitle').value = item.title;
-                document.getElementById('inputLocation').value = item.location || '';
-                document.getElementById('inputType').value = item.type;
-                document.getElementById('inputDuration').value = item.duration;
+                document.getElementById('eventId').value = item.id; document.getElementById('inputDate').value = item.date; document.getElementById('inputTime').value = item.time; document.getElementById('inputTitle').value = item.title; document.getElementById('inputLocation').value = item.location || ''; document.getElementById('inputType').value = item.type; document.getElementById('inputDuration').value = item.duration;
             } else {
-                document.getElementById('modalTitle').innerText = '新增行程';
-                btnDel.style.display = 'none';
-                form.reset();
-                document.getElementById('eventId').value = '';
-                // Defaults
+                document.getElementById('modalTitle').innerText = '新增行程'; btnDel.style.display = 'none'; form.reset(); document.getElementById('eventId').value = '';
                 if(currentTripData.length) document.getElementById('inputDate').value = currentTripData[currentTripData.length-1].date;
                 else document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
-                const now = new Date();
-                document.getElementById('inputTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                const now = new Date(); document.getElementById('inputTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
             }
         }
         function closeModal() { document.getElementById('modal').classList.remove('active'); }
