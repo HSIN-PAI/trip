@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>沖繩之旅 2026 (極速拖曳版)</title>
+    <title>沖繩之旅 2026</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
-    <!-- 引入 SortableJS 用於拖曳 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --primary: #006994; --accent: #FF7F50; --bg: #F4F7F6; --text: #333; }
         
-        /* 基礎設定 */
-        * { box-sizing: border-box; } /* 關鍵：讓 padding 不會撐大寬度 */
+        /* 全域設定：確保邊框計算在寬度內 */
+        * { box-sizing: border-box; -webkit-box-sizing: border-box; }
         
-        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 120px; margin: 0; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background: var(--bg); color: var(--text); 
+            padding-bottom: 120px; margin: 0; 
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden; /* 防止水平捲動 */
+        }
         
         header { background: var(--primary); color: white; padding: 20px; text-align: center; position: sticky; top:0; z-index: 50; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         h1 { margin: 0; font-family: 'Zen Maru Gothic'; font-size: 1.4rem; }
@@ -29,10 +34,10 @@
         .event-list { min-height: 20px; }
 
         .event-card {
-            background: white; border-radius: 12px; padding: 12px 16px; margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;
-            border-left: 5px solid transparent; transition: background 0.2s; position: relative;
-            touch-action: manipulation;
+            background: white; border-radius: 12px; padding: 12px 10px 12px 16px;
+            margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            display: flex; align-items: center; gap: 12px;
+            border-left: 5px solid transparent; position: relative;
         }
         
         .type-景點 { border-left-color: #4FC3F7; }
@@ -41,12 +46,21 @@
         .type-購物 { border-left-color: #BA68C8; }
         .type-住宿 { border-left-color: #5C6BC0; }
 
-        .drag-handle { color: #ccc; font-size: 20px; cursor: grab; padding: 5px; }
-        .time-box { font-weight: 700; color: var(--primary); font-size: 1.1rem; min-width: 55px; }
-        .info-box { flex: 1; overflow: hidden; } /* 防止內容撐開 */
-        .event-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .event-meta { font-size: 0.85rem; color: #666; display: flex; gap: 8px; }
+        .drag-handle { color: #ccc; font-size: 20px; cursor: grab; padding: 5px; flex-shrink: 0; }
+        .time-box { font-weight: 700; color: var(--primary); font-size: 1.1rem; min-width: 50px; flex-shrink: 0; }
         
+        .info-box { flex: 1; overflow: hidden; cursor: pointer; min-width: 0; /* 關鍵：讓 flex 子元素可縮小 */ } 
+        .event-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .event-meta { font-size: 0.85rem; color: #666; display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .btn-map {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #E3F2FD; color: #0277BD;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 1.2rem;
+            flex-shrink: 0; /* 防止按鈕被壓扁 */
+        }
+
         .fab {
             position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
             background: var(--accent); color: white; border-radius: 50%;
@@ -60,36 +74,40 @@
         }
         #status-bar.show { transform: translateY(0); }
 
-        /* Modal 修正版 */
+        /* --- Modal 修正區 --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 300; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         
         .modal-content { 
             background: white; 
-            width: 85%; /* 改成 85% 留點邊距 */
-            max-width: 380px; /* 限制最大寬度 */
-            padding: 20px; /* 稍微縮小內距 */
+            width: 90%; /* 手機寬度佔比 */
+            max-width: 400px; 
+            padding: 25px 20px; /* 上下25, 左右20 */
             border-radius: 16px; 
-            box-sizing: border-box; /* 確保 padding 不會往外撐 */
+            max-height: 90vh; /* 防止太高超出螢幕 */
+            overflow-y: auto; /* 內容太多可滾動 */
+            position: relative;
         }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #666; font-size: 0.9rem; }
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; /* 關鍵：螢幕太小時自動換行 */ }
         
-        /* 輸入框樣式修正 */
+        label { display: block; margin-bottom: 6px; color: #666; font-size: 0.9rem; font-weight: 500; }
+        
         input, select { 
             width: 100%; 
-            padding: 10px; /* 調整舒適度 */
+            padding: 12px; 
             border: 1px solid #ddd; 
             border-radius: 8px; 
-            font-size: 16px; /* 16px 防止 iOS 自動放大 */
-            box-sizing: border-box; /* 關鍵 */
+            font-size: 16px; /* 防止 iOS 縮放 */
+            min-width: 0; /* 防止 Flex 子元素撐開 */
+            background: #fff;
         }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
         button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         .btn-submit { background: var(--primary); color: white; }
-        .btn-del { background: #ffebee; color: #d32f2f; margin-top: 10px; width: 100%; display: none; }
+        .btn-del { background: #ffebee; color: #d32f2f; margin-top: 15px; width: 100%; display: none; }
         .btn-cancel { background: #f5f5f5; color: #666; }
         
         .sortable-ghost { opacity: 0.4; background: #eee; }
@@ -114,18 +132,29 @@
             <h2 id="modalTitle" style="text-align:center; margin-bottom:20px; margin-top:0;">新增行程</h2>
             <form id="eventForm">
                 <input type="hidden" name="id" id="eventId">
-                <div class="form-group">
-                    <label>日期</label>
-                    <input type="date" name="date" id="inputDate" required>
+                
+                <!-- 日期與時間 (使用 wrap 防止爆版) -->
+                <div class="form-row">
+                    <div class="form-group" style="flex: 3; min-width: 140px;">
+                        <label>日期</label>
+                        <input type="date" name="date" id="inputDate" required>
+                    </div>
+                    <div class="form-group" style="flex: 2; min-width: 100px;">
+                        <label>時間</label>
+                        <input type="time" name="time" id="inputTime" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>時間</label>
-                    <input type="time" name="time" id="inputTime" required>
-                </div>
+
                 <div class="form-group">
                     <label>名稱</label>
-                    <input type="text" name="title" id="inputTitle" required placeholder="例如：吃拉麵">
+                    <input type="text" name="title" id="inputTitle" required placeholder="例如：古宇利蝦蝦飯">
                 </div>
+
+                <div class="form-group">
+                    <label>地圖地點 (留空搜尋名稱)</label>
+                    <input type="text" name="location" id="inputLocation" placeholder="例如：Kouri Shrimp">
+                </div>
+
                 <div class="form-group">
                     <label>類型</label>
                     <select name="type" id="inputType">
@@ -136,10 +165,12 @@
                         <option value="住宿">住宿</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label>備註</label>
                     <input type="text" name="duration" id="inputDuration" placeholder="訂位資訊或停留時間">
                 </div>
+                
                 <div class="btn-group">
                     <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
                     <button type="submit" class="btn-submit">確定</button>
@@ -156,7 +187,8 @@
         init();
 
         async function init() {
-            const cached = localStorage.getItem('tripData');
+            // 更新 key 以確保舊版快取不會影響新版面
+            const cached = localStorage.getItem('tripData_v3');
             if (cached) {
                 globalData = JSON.parse(cached);
                 render();
@@ -196,29 +228,36 @@
 
             Object.keys(groups).forEach(date => {
                 const dayId = `day-${date}`;
-                // 顯示星期幾
                 const dayName = new Date(date).toLocaleDateString('zh-TW', {weekday: 'long'});
                 
                 let html = `
                     <div class="day-section">
                         <div class="day-header">
-                            <span>📅 ${date} <small style="font-size:0.8em; margin-left:5px;">${dayName}</small></span>
+                            <span>📅 ${date} <small style="font-size:0.8em;">${dayName}</small></span>
                         </div>
                         <div class="event-list" id="${dayId}" data-date="${date}">
                 `;
                 
                 groups[date].forEach(item => {
+                    const query = item.location ? item.location : item.title;
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
                     html += `
-                        <div class="event-card type-${item.type}" data-id="${item.id}" onclick="openModal('edit', '${item.id}')">
+                        <div class="event-card type-${item.type}" data-id="${item.id}">
                             <div class="drag-handle">≡</div>
                             <div class="time-box">${item.time}</div>
-                            <div class="info-box">
+                            
+                            <div class="info-box" onclick="openModal('edit', '${item.id}')">
                                 <div class="event-title">${item.title}</div>
                                 <div class="event-meta">
                                     <span>${item.type}</span>
                                     ${item.duration ? `<span>• ${item.duration}</span>` : ''}
                                 </div>
                             </div>
+
+                            <a href="${mapUrl}" target="_blank" class="btn-map" title="開啟地圖">
+                                🗺️
+                            </a>
                         </div>
                     `;
                 });
@@ -231,9 +270,7 @@
                     handle: '.drag-handle',
                     animation: 150,
                     group: 'shared',
-                    onEnd: function (evt) {
-                        handleDragEnd(evt);
-                    }
+                    onEnd: handleDragEnd
                 });
             });
         }
@@ -249,7 +286,6 @@
             if (!item) return;
 
             item.date = targetDate;
-
             const prevEl = targetList.children[newIndex - 1];
             const nextEl = targetList.children[newIndex + 1];
             
@@ -313,7 +349,7 @@
         }
 
         function saveLocal() {
-            localStorage.setItem('tripData', JSON.stringify(globalData));
+            localStorage.setItem('tripData_v3', JSON.stringify(globalData));
         }
 
         function showStatus(msg, autoHide) {
@@ -334,8 +370,9 @@
                 const item = globalData.find(d => d.id === id);
                 document.getElementById('eventId').value = item.id;
                 document.getElementById('inputDate').value = item.date;
-                document.getElementById('inputTime').value = item.time; // 編輯：保留原時間
+                document.getElementById('inputTime').value = item.time;
                 document.getElementById('inputTitle').value = item.title;
+                document.getElementById('inputLocation').value = item.location || '';
                 document.getElementById('inputType').value = item.type;
                 document.getElementById('inputDuration').value = item.duration;
             } else {
@@ -344,18 +381,11 @@
                 form.reset();
                 document.getElementById('eventId').value = '';
                 
-                // --- 日期預設 ---
-                // 預設為最後一個行程的日期，如果沒有則預設今天
                 if(globalData.length > 0) {
-                     // 為了方便連續新增，這裡預設為列表最後一天的日期
-                     // 當然你也可以改成 new Date().toISOString().split('T')[0]
                      document.getElementById('inputDate').value = globalData[globalData.length-1].date;
                 } else {
                      document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
                 }
-
-                // --- 時間預設 (新增功能) ---
-                // 取得現在時間 HH:mm
                 const now = new Date();
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -363,8 +393,6 @@
             }
         }
         function closeModal() { document.getElementById('modal').classList.remove('active'); }
-        
-        // 點擊背景關閉
         document.getElementById('modal').addEventListener('click', (e) => {
              if(e.target.id === 'modal') closeModal();
         });
